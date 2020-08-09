@@ -12,12 +12,14 @@ async function getFramesTasks(response) {
       "SELECT * FROM tasks WHERE frame_id = $1",
       [frame.id]
     );
-    frame.tasks = tasksFrame.rows;
+    frame.tasks = tasksFrame.rows.sort(function (a, b) {
+      return a.position < b.position ? -1 : 1;
+    });
     frames.push(frame);
   }
   return frames;
 }
-exports.findFrameById = async (req, res) => {
+exports.findFrame = async (req, res) => {
   const frameId = req.params.id;
   const response = await db.query("SELECT * FROM frames WHERE id = $1", [
     frameId,
@@ -42,7 +44,6 @@ exports.createFrame = async (req, res) => {
 };
 exports.updateFrame = async (req, res) => {
   const frameId = req.body.id;
-  console.log(frameId)
   const { title, position } = req.body;
 
   const response = await db.query(
@@ -53,7 +54,7 @@ exports.updateFrame = async (req, res) => {
   res.status(200).send({ message: "Frame Updated Successfully!" });
 };
 exports.deleteFrame = async (req, res) => {
-  const frameId = req.body.id;
+  const frameId = req.params.id;
   await db.query("DELETE FROM frames WHERE id = $1", [frameId]);
 
   res.status(200).send({ message: "Frame deleted successfully!", frameId });
